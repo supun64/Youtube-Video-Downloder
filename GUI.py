@@ -1,5 +1,103 @@
 from tkinter import *
 from PIL import ImageTk, Image
+import pytube
+from tkinter import filedialog
+
+
+def get_details(stream):
+    v_list = str(stream).split()
+    v_list.pop(0)
+    v_list.pop()
+    details = {}
+    for x in v_list:
+        details[x[:x.index("=")]] = eval(x[x.index("=") + 1:])
+
+    return details
+
+
+def download_video(download_url, download_path):
+    video_link = pytube.YouTube(download_url)
+    video = video_link.streams.filter(progressive=True)
+
+    format_window = Tk()
+    format_window.title("Select The File Format To Download.")
+    format_window.iconbitmap("img\\icon.ico")
+    format_frame = LabelFrame(format_window, bd=2, padx=5, pady=5, bg="#C7C7C2", relief="ridge")
+    format_frame.pack(padx=5, pady=5)
+
+    v = IntVar(format_frame)  # in here we have to specify in which frame is this variable contains
+
+    def button_clicked(value):
+        video[value].download(download_path.replace("\\", '\\\\'))
+        format_window.destroy()
+        message("The Download Is Complete.", "Success", "img//success.ico")
+
+    for index, v_format in enumerate(video):
+        video_details = get_details(v_format)
+        label_radio = '\t'.join(['Resolution : ' + video_details['res'], 'Format : ' + video_details['mime_type'],
+                                 'FPS : ' + video_details['fps']])
+
+        Radiobutton(format_frame, text=label_radio, font=('Courier', 12),
+                    variable=v, value=index, pady=5, fg="#000000", bg="#C7C7C2").pack(padx=10, pady=10)
+
+    Button(format_frame, text="Start Download", font=("Courier", 15), borderwidth=3,
+           command=lambda: button_clicked(v.get()), bg="#76EE68").pack(pady=10)
+
+
+def download_playlist(playlist_url, playlist_path):
+    playlist = pytube.Playlist(playlist_url)
+    playlist.download_all(playlist_path)
+    message("The Download Is Complete.", "Success", "img//success.ico")
+
+
+def message(context, title_name="Error", icon="img\\error.ico"):
+    message_box = Tk()
+    message_box.title(title_name)
+    message_box.iconbitmap(icon)
+
+    error_frame = LabelFrame(message_box, bd=1, relief=SOLID)
+    error_frame.pack(padx=5, pady=5)
+
+    Label(error_frame, text=context, anchor=W, justify=LEFT, padx=20).grid(row=0, column=0, padx=10, pady=10)
+    cmd_btn = Button(error_frame, text="OK", command=message_box.destroy, width=10)
+    cmd_btn.grid(row=1, column=0, padx=10, pady=10, sticky=E)
+
+
+def download_cmd(type):
+    if link.get() == "":
+        message("Invalid URL input!!!\n"
+                "\tYou should enter the URL for the video\n"
+                "that you need to download.")
+
+    elif path.get() == "":
+        message("Invalid PATH input!!!\n"
+                "\tYou should enter the path of the folder\n"
+                "that you need to save the video.")
+
+    else:
+        try:
+            if type == 1:
+                download_video(link.get(), path.get())
+            else:
+                download_playlist(link.get(), path.get())
+
+        except:
+            message("Unexpected Error\n"
+                    "check your download link. and Download path")
+
+        link.delete(0, len(link.get()))
+        path.delete(0, len(path.get()))
+
+
+def browser_btn():
+    browser_box = Tk()
+    browser_box.withdraw()
+    browser_box.filename = filedialog.askdirectory(initialdir="C:\\", title="Select Download Directory")
+    path.delete(0, len(path.get()))
+    path.insert(0, str(browser_box.filename))
+
+    browser_box.destroy()
+
 
 root = Tk()
 root.title("YouTube Video Downloader")
@@ -21,7 +119,8 @@ title_label = Label(logo_frame, image=title_icon, bg=logo_color)
 title_label.grid(row=0, column=0, columnspan=2, pady=10)
 
 # This is the code to add the description
-label_description = Label(logo_frame, text="!!!!YOUTUBE VIDEO DOWNLOADER!!!!", fg='#FFF300', padx=100, pady=20, bg=logo_color)
+label_description = Label(logo_frame, text="!!!!YOUTUBE VIDEO DOWNLOADER!!!!",
+                          fg='#FFF300', padx=100, pady=20, bg=logo_color)
 label_description.config(font=("Courier", 27))
 label_description.grid(row=1, column=0, pady=20, columnspan=2)
 
@@ -34,18 +133,27 @@ link.grid(row=3, column=1, sticky=W, pady=3)
 
 # This is the code to add Browser path entry and label
 path = Entry(main_frame, width=50)
-path_label = Label(main_frame, text="Enter The Path You Want To Save The Video:", padx=50, anchor=E, bg=back_color, fg=f_color)
+path_label = Label(main_frame, text="Enter The Path You Want To Save The Video:",
+                   padx=50, anchor=E, bg=back_color, fg=f_color)
 path_label.config(font=("TimesNewRoman", 12))
 path_label.grid(row=4, column=0, sticky=W+E, pady=3)
 path.grid(row=4, column=1, sticky=W, pady=3)
 
 # This is the code to browser button
-path_browser = Button(main_frame, text='Browse', borderwidth=3, font=("TimesNewRoman", 12))
+path_browser = Button(main_frame, text='Browse', borderwidth=3, font=("TimesNewRoman", 12), command=browser_btn)
 path_browser.grid(row=5, column=1, sticky=W)
 
-# This is the code to download button
-download = Button(main_frame, text='DOWNLOAD', font=("TimesNewRoman", 18), borderwidth=5, padx=20, pady=10, bg="#27F316")
-download.grid(row=6, column=0, columnspan=3, pady=20)
+# This is the code to choose from video download and playlist download
+r = IntVar(main_frame)
+r.set(0)
+Radiobutton(main_frame, text="One Video Download", variable=r, value=1, bd=4, relief=SUNKEN,
+            fg="#000000", bg="#63635F", font=("TimesNewRoman", 12), anchor=E).grid(row=6, column=0, pady=5, sticky=E)
+Radiobutton(main_frame, text="Playlist Download", variable=r, value=2, bd=4, relief=SUNKEN,
+            fg="#000000", bg="#63635F", font=("TimesNewRoman", 12), anchor=W).grid(row=6, column=1, pady=5, sticky=W)
 
+# This is the code to download button
+download = Button(main_frame, text='DOWNLOAD', font=("TimesNewRoman", 18), command=lambda: download_cmd(r.get()),
+                  borderwidth=5, padx=20, pady=10, bg="#27F316")
+download.grid(row=7, column=0, columnspan=3, pady=20)
 
 mainloop()
