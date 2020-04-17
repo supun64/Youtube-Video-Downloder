@@ -5,6 +5,11 @@ from tkinter import filedialog
 
 
 def get_details(stream):
+    """
+    This is the code to get the useful video details from th URL
+    :param stream: The video stream comtaining details as a string
+    :return: dictionary of useful details
+    """
     v_list = str(stream).split()
     v_list.pop(0)
     v_list.pop()
@@ -15,10 +20,11 @@ def get_details(stream):
     return details
 
 
-def download_video(download_url, download_path):
-    video_link = pytube.YouTube(download_url)
-    video = video_link.streams.filter(progressive=True)
+def video_quality(sample_video):
+    end_dialog_box = False
 
+
+    # This is the code to create the new dialogue box to get the users choice of video quality
     format_window = Tk()
     format_window.title("Select The File Format To Download.")
     format_window.iconbitmap("img\\icon.ico")
@@ -27,30 +33,83 @@ def download_video(download_url, download_path):
 
     v = IntVar(format_frame)  # in here we have to specify in which frame is this variable contains
 
-    def button_clicked(value):
-        video[value].download(download_path.replace("\\", '\\\\'))
-        format_window.destroy()
-        message("The Download Is Complete.", "Success", "img//success.ico")
 
-    for index, v_format in enumerate(video):
-        video_details = get_details(v_format)
-        label_radio = '\t'.join(['Resolution : ' + video_details['res'], 'Format : ' + video_details['mime_type'],
-                                 'FPS : ' + video_details['fps']])
+    while True:
+        def button_clicked():
+            global end_dialog_box
+            end_dialog_box = True
 
-        Radiobutton(format_frame, text=label_radio, font=('Courier', 12),
-                    variable=v, value=index, pady=5, fg="#000000", bg="#C7C7C2").pack(padx=10, pady=10)
+        # This is the code to create radio boxes
+        for index, v_format in enumerate(sample_video):
+            video_details = get_details(v_format)
+            label_radio = '\t'.join(['Resolution : ' + video_details['res'], 'Format : ' + video_details['mime_type'],
+                                     'FPS : ' + video_details['fps']])
 
-    Button(format_frame, text="Start Download", font=("Courier", 15), borderwidth=3,
-           command=lambda: button_clicked(v.get()), bg="#76EE68").pack(pady=10)
+            Radiobutton(format_frame, text=label_radio, font=('Courier', 12),
+                        variable=v, value=index, pady=5, fg="#000000", bg="#C7C7C2").pack(padx=10, pady=10)
+
+        # This is the define of the button
+        Button(format_frame, text="Start Download", font=("Courier", 15), borderwidth=3,
+               command=button_clicked, bg="#76EE68").pack(pady=10)
+
+        if end_dialog_box:
+            final_value = v.get()
+            format_window.destroy()
+            return final_value
+
+
+def download_video(download_url, download_path):
+    """
+    This will download a single video
+    :param download_url: The url of the youtube video
+    :param download_path: directory you want to save the video
+    :return: if playlist_down user choice video quality else None
+    """
+    video_link = pytube.YouTube(download_url)
+    video = video_link.streams.filter(progressive=True)
+
+    value = video_quality(video)
+
+    video[value].download(download_path.replace("\\", '\\\\'))
+    message("The Download Is Complete.", "Success", "img//success.ico")
 
 
 def download_playlist(playlist_url, playlist_path):
+    """
+    This is the function to download a playlist
+    :param playlist_url: URL of the playlist
+    :param playlist_path: Download directory
+    :return: None
+    """
     playlist = pytube.Playlist(playlist_url)
-    playlist.download_all(playlist_path)
+    video_link = pytube.YouTube(playlist[0])
+    video = video_link.streams.filter(progressive=True)
+    user_quality = video_quality(video)
+
+    for each_video in playlist:
+        each_video_link = pytube.YouTube(each_video)
+        reduced_video = video_link.streams.filter(progressive=True)
+
+        # We use this exception if there are no such value in video we get the best first stream
+        try:
+            # reduced_video[user_quality].download(playlist_path.replace("\\", "\\\\"))
+            print(user_quality)
+
+        except:
+            # reduced_video.first().download(playlist_path.replace("\\", "\\\\"))
+            pass
+
     message("The Download Is Complete.", "Success", "img//success.ico")
 
 
 def message(context, title_name="Error", icon="img\\error.ico"):
+    """
+    This is a function to pop up a message
+    :param context: Message body
+    :param title_name: Message title
+    :param icon: Icon of the messsage the default vallue is assigned to a icon of a error message
+    :return: None
+    """
     message_box = Tk()
     message_box.title(title_name)
     message_box.iconbitmap(icon)
@@ -63,7 +122,12 @@ def message(context, title_name="Error", icon="img\\error.ico"):
     cmd_btn.grid(row=1, column=0, padx=10, pady=10, sticky=E)
 
 
-def download_cmd(type):
+def download_cmd(download_type):
+    """
+    This is the function for download button in root window
+    :param download_type: if video download or a playlist download
+    :return: None
+    """
     if link.get() == "":
         message("Invalid URL input!!!\n"
                 "\tYou should enter the URL for the video\n"
@@ -76,20 +140,24 @@ def download_cmd(type):
 
     else:
         try:
-            if type == 1:
+            if download_type == 1:
                 download_video(link.get(), path.get())
             else:
                 download_playlist(link.get(), path.get())
-
         except:
             message("Unexpected Error\n"
                     "check your download link. and Download path")
 
-        link.delete(0, len(link.get()))
-        path.delete(0, len(path.get()))
+        finally:
+            link.delete(0, len(link.get()))
+            path.delete(0, len(path.get()))
 
 
 def browser_btn():
+    """
+    This is the function to browser button
+    :return:
+    """
     browser_box = Tk()
     browser_box.withdraw()
     browser_box.filename = filedialog.askdirectory(initialdir="C:\\", title="Select Download Directory")
@@ -99,14 +167,17 @@ def browser_btn():
     browser_box.destroy()
 
 
+# The root code starts here
 root = Tk()
 root.title("YouTube Video Downloader")
 root.iconbitmap("img\\icon.ico")
 
+# These are some color variables
 back_color = "#000000"
 f_color = "#FFFFFF"
 logo_color = "#5B0303"
 
+# These are Label frames we created to group the context
 main_frame = LabelFrame(root, bd=3, relief=SOLID, padx=10, pady=10, bg=back_color, fg=f_color)
 main_frame.pack(padx=5, pady=5, anchor='center')
 
