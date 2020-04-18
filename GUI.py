@@ -1,8 +1,10 @@
+import os
+os.system('cmd /c "pip install pillow pytube"')
+
 from tkinter import *
 from PIL import ImageTk, Image
 import pytube
 from tkinter import filedialog
-import os
 
 # Global Scope variables
 final_value = None
@@ -70,7 +72,7 @@ def video_quality(sample_video):
 
     # This is the define of the button
     Button(format_frame, text="Start Download", font=("Courier", 15), borderwidth=3,
-           command=button_clicked, bg="#76EE68").pack(pady=10)
+           command=button_clicked, bg="#76EE68", activebackground='#55BD49').pack(pady=10)
 
     format_window.mainloop()
 
@@ -148,6 +150,8 @@ def download_cmd(download_type):
     :param download_type: if video download or a playlist download
     :return: None
     """
+    download.config()
+
     if link.get() == "":
         message("Invalid URL input!!!\n"
                 "\tYou should enter the URL for the video\n"
@@ -165,13 +169,15 @@ def download_cmd(download_type):
             else:
                 download_playlist(link.get(), path.get())
         except:
-            message("Unexpected Error\n"
+            message("Unexpected Error!!!\n"
                     "Check your download link and Download path\n"
                     "and try again.")
 
         else:
             link.delete(0, len(link.get()))
             path.delete(0, len(path.get()))
+        finally:
+            download.config(bg="#27F316")
 
 
 def browser_btn():
@@ -181,9 +187,15 @@ def browser_btn():
     """
     browser_box = Tk()
     browser_box.withdraw()
-    browser_box.filename = filedialog.askdirectory(initialdir="C:\\", title="Select Download Directory")
-    path.delete(0, END)
-    path.insert(0, str(browser_box.filename))
+    browser_box.filename = filedialog.askdirectory(initialdir=os.environ['USERPROFILE'] + "\\Downloads",
+                                                   title="Select Download Directory")
+
+    # This is the code to only replace the path if user have select a folder
+    if browser_box.filename != "":
+        path.configure(state=NORMAL)
+        path.unbind('<Button-1>')
+        path.delete(0, END)
+        path.insert(0, str(browser_box.filename))
 
     browser_box.destroy()
 
@@ -213,6 +225,8 @@ root = Tk()
 root.title("YouTube Video Downloader")
 root.iconbitmap("img\\icon.ico")
 root.resizable(False, False)
+root.protocol("WM_DELETE_WINDOW", lambda: sys.exit())
+
 
 # These are some color variables
 back_color = "#000000"
@@ -276,7 +290,7 @@ Radiobutton(main_frame, text="Playlist Download", variable=r, value=2, bd=4, rel
 
 # This is the code to download button
 download = Button(main_frame, text='DOWNLOAD', font=("Times", 18), command=lambda: download_cmd(r.get()),
-                  borderwidth=5, padx=20, pady=10, bg="#27F316")
+                  borderwidth=5, padx=20, pady=10, bg="#27F316", activebackground='#119802')
 download.grid(row=7, column=0, columnspan=2, pady=20)
 
 # This is the footer containing copyrights and released date
@@ -285,3 +299,5 @@ footer = Label(main_frame, text="CopyRight \u00A9 LoneWolf Dev. Released : 2020-
 footer.grid(row=8, column=0, columnspan=3, pady=1, sticky=W+E)
 
 root.mainloop()
+
+sys.exit()
