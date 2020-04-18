@@ -3,11 +3,14 @@ from PIL import ImageTk, Image
 import pytube
 from tkinter import filedialog
 
+end_dialogue_box = None
+final_value = None
+
 
 def get_details(stream):
     """
     This is the code to get the useful video details from th URL
-    :param stream: The video stream comtaining details as a string
+    :param stream: The video stream containing details as a string
     :return: dictionary of useful details
     """
     v_list = str(stream).split()
@@ -21,8 +24,8 @@ def get_details(stream):
 
 
 def video_quality(sample_video):
-    end_dialog_box = False
-
+    global final_value
+    final_value = None
 
     # This is the code to create the new dialogue box to get the users choice of video quality
     format_window = Tk()
@@ -33,29 +36,30 @@ def video_quality(sample_video):
 
     v = IntVar(format_frame)  # in here we have to specify in which frame is this variable contains
 
+    def button_clicked():
+        """
+        This is the function to start download button
+        :return:
+        """
+        global final_value
+        final_value = v.get()
+        format_window.destroy()  # We use this to destroy the window
+        format_window.quit()  # We use this to exit from the format_window mainloop
 
-    while True:
-        def button_clicked():
-            global end_dialog_box
-            end_dialog_box = True
+    # This is the code to create radio boxes
+    for index, v_format in enumerate(sample_video):
+        video_details = get_details(v_format)
+        label_radio = '\t'.join(['Resolution : ' + video_details['res'], 'Format : ' + video_details['mime_type'],
+                                 'FPS : ' + video_details['fps']])
 
-        # This is the code to create radio boxes
-        for index, v_format in enumerate(sample_video):
-            video_details = get_details(v_format)
-            label_radio = '\t'.join(['Resolution : ' + video_details['res'], 'Format : ' + video_details['mime_type'],
-                                     'FPS : ' + video_details['fps']])
+        Radiobutton(format_frame, text=label_radio, font=('Courier', 12),
+                    variable=v, value=index, pady=5, fg="#000000", bg="#C7C7C2").pack(padx=10, pady=10)
 
-            Radiobutton(format_frame, text=label_radio, font=('Courier', 12),
-                        variable=v, value=index, pady=5, fg="#000000", bg="#C7C7C2").pack(padx=10, pady=10)
+    # This is the define of the button
+    Button(format_frame, text="Start Download", font=("Courier", 15), borderwidth=3,
+           command=button_clicked, bg="#76EE68").pack(pady=10)
 
-        # This is the define of the button
-        Button(format_frame, text="Start Download", font=("Courier", 15), borderwidth=3,
-               command=button_clicked, bg="#76EE68").pack(pady=10)
-
-        if end_dialog_box:
-            final_value = v.get()
-            format_window.destroy()
-            return final_value
+    format_window.mainloop()
 
 
 def download_video(download_url, download_path):
@@ -68,7 +72,9 @@ def download_video(download_url, download_path):
     video_link = pytube.YouTube(download_url)
     video = video_link.streams.filter(progressive=True)
 
-    value = video_quality(video)
+    video_quality(video)
+
+    value = final_value
 
     video[value].download(download_path.replace("\\", '\\\\'))
     message("The Download Is Complete.", "Success", "img//success.ico")
@@ -84,20 +90,20 @@ def download_playlist(playlist_url, playlist_path):
     playlist = pytube.Playlist(playlist_url)
     video_link = pytube.YouTube(playlist[0])
     video = video_link.streams.filter(progressive=True)
-    user_quality = video_quality(video)
+    video_quality(video)
+
+    user_quality = final_value
 
     for each_video in playlist:
         each_video_link = pytube.YouTube(each_video)
-        reduced_video = video_link.streams.filter(progressive=True)
+        reduced_video = each_video_link.streams.filter(progressive=True)
 
         # We use this exception if there are no such value in video we get the best first stream
         try:
-            # reduced_video[user_quality].download(playlist_path.replace("\\", "\\\\"))
-            print(user_quality)
+            reduced_video[user_quality].download(playlist_path.replace("\\", "\\\\"))
 
         except:
-            # reduced_video.first().download(playlist_path.replace("\\", "\\\\"))
-            pass
+            reduced_video.first().download(playlist_path.replace("\\", "\\\\"))
 
     message("The Download Is Complete.", "Success", "img//success.ico")
 
@@ -148,9 +154,8 @@ def download_cmd(download_type):
             message("Unexpected Error\n"
                     "check your download link. and Download path")
 
-        finally:
-            link.delete(0, len(link.get()))
-            path.delete(0, len(path.get()))
+        link.delete(0, len(link.get()))
+        path.delete(0, len(path.get()))
 
 
 def browser_btn():
@@ -199,7 +204,7 @@ label_description.grid(row=1, column=0, pady=20, columnspan=2)
 link = Entry(main_frame, width=50)
 link_label = Label(main_frame, text="Enter The URL:", padx=50, anchor=E, bg=back_color, fg=f_color)
 link_label.config(font=("TimesNewRoman", 12))
-link_label.grid(row=3, column=0, pady=3, sticky=W+E)
+link_label.grid(row=3, column=0, pady=3, sticky=W + E)
 link.grid(row=3, column=1, sticky=W, pady=3)
 
 # This is the code to add Browser path entry and label
@@ -207,7 +212,7 @@ path = Entry(main_frame, width=50)
 path_label = Label(main_frame, text="Enter The Path You Want To Save The Video:",
                    padx=50, anchor=E, bg=back_color, fg=f_color)
 path_label.config(font=("TimesNewRoman", 12))
-path_label.grid(row=4, column=0, sticky=W+E, pady=3)
+path_label.grid(row=4, column=0, sticky=W + E, pady=3)
 path.grid(row=4, column=1, sticky=W, pady=3)
 
 # This is the code to browser button
@@ -227,4 +232,4 @@ download = Button(main_frame, text='DOWNLOAD', font=("TimesNewRoman", 18), comma
                   borderwidth=5, padx=20, pady=10, bg="#27F316")
 download.grid(row=7, column=0, columnspan=3, pady=20)
 
-mainloop()
+root.mainloop()
