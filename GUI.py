@@ -24,6 +24,15 @@ def get_details(stream):
 
 
 def video_quality(sample_video):
+    """
+    This is a very complicated function, if we do not call the main loop of this window as soon as we execute this
+    function in another function before we get the desired input from this function the remaining codes in that
+    function will be executed so we have to call the mainloop for this Tk initiate and after we call
+    format_window.destroy to destroy the window but we still have the mainloop function running so it will not get rid
+    of that in order to break from the main loop we have to call format_window.quit()
+    :param sample_video: sample video for get the available qualities and users choice
+    :return: None
+    """
     global final_value
     final_value = None
 
@@ -38,8 +47,9 @@ def video_quality(sample_video):
 
     def button_clicked():
         """
-        This is the function to start download button
-        :return:
+        This is the function to start download button. This will exit both from the window and exit from the mainloop
+        of this initiate
+        :return: None
         """
         global final_value
         final_value = v.get()
@@ -113,7 +123,7 @@ def message(context, title_name="Error", icon="img\\error.ico"):
     This is a function to pop up a message
     :param context: Message body
     :param title_name: Message title
-    :param icon: Icon of the messsage the default vallue is assigned to a icon of a error message
+    :param icon: Icon of the message the default value is assigned to a icon of a error message
     :return: None
     """
     message_box = Tk()
