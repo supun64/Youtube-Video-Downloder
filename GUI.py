@@ -124,7 +124,7 @@ def message(context, title_name="Error", icon="img\\error.ico"):
     error_frame.pack(padx=5, pady=5)
 
     Label(error_frame, text=context, anchor=W, justify=LEFT, padx=20).grid(row=0, column=0, padx=10, pady=10)
-    cmd_btn = Button(error_frame, text="OK", command=message_box.destroy(), width=10)
+    cmd_btn = Button(error_frame, text="OK", command=message_box.destroy, width=10)
     cmd_btn.grid(row=1, column=0, padx=10, pady=10, sticky=E)
 
 
@@ -171,6 +171,7 @@ def browser_btn():
 
     browser_box.destroy()
 
+
 # The root code starts here
 root = Tk()
 root.title("YouTube Video Downloader")
@@ -194,7 +195,8 @@ title_label = Label(logo_frame, image=title_icon, bg=logo_color)
 title_label.grid(row=0, column=0, columnspan=2, pady=10)
 
 # This is the code to add the description
-label_description = Label(logo_frame, text="!!!!YOUTUBE VIDEO DOWNLOADER!!!!", fg='#FFF300', padx=100, pady=20, bg=logo_color)
+label_description = Label(logo_frame, text="!!!!YOUTUBE VIDEO DOWNLOADER!!!!",
+                          fg='#FFF300', padx=100, pady=20, bg=logo_color)
 label_description.config(font=("Courier", 27))
 label_description.grid(row=1, column=0, pady=20, columnspan=2)
 
@@ -207,18 +209,27 @@ link.grid(row=3, column=1, sticky=W, pady=3)
 
 # This is the code to add Browser path entry and label
 path = Entry(main_frame, width=50)
-path_label = Label(main_frame, text="Enter The Path You Want To Save The Video:", padx=50, anchor=E, bg=back_color, fg=f_color)
+path_label = Label(main_frame, text="Enter The Path You Want To Save The Video:",
+                   padx=50, anchor=E, bg=back_color, fg=f_color)
 path_label.config(font=("TimesNewRoman", 12))
 path_label.grid(row=4, column=0, sticky=W + E, pady=3)
 path.grid(row=4, column=1, sticky=W, pady=3)
 
 # This is the code to browser button
-path_browser = Button(main_frame, text='Browse', borderwidth=3, font=("TimesNewRoman", 12))
+path_browser = Button(main_frame, text='Browse', borderwidth=3, font=("TimesNewRoman", 12), command=browser_btn)
 path_browser.grid(row=5, column=1, sticky=W)
 
-# This is the code to download button
-download = Button(main_frame, text='DOWNLOAD', font=("TimesNewRoman", 18), borderwidth=5, padx=20, pady=10, bg="#27F316")
-download.grid(row=6, column=0, columnspan=3, pady=20)
+# This is the code to choose from video download and playlist download
+r = IntVar(main_frame)
+r.set(0)
+Radiobutton(main_frame, text="One Video Download", variable=r, value=1, bd=4, relief=SUNKEN,
+            fg="#000000", bg="#63635F", font=("TimesNewRoman", 12), anchor=E).grid(row=6, column=0, pady=5, sticky=E)
+Radiobutton(main_frame, text="Playlist Download", variable=r, value=2, bd=4, relief=SUNKEN,
+            fg="#000000", bg="#63635F", font=("TimesNewRoman", 12), anchor=W).grid(row=6, column=1, pady=5, sticky=W)
 
+# This is the code to download button
+download = Button(main_frame, text='DOWNLOAD', font=("TimesNewRoman", 18), command=lambda: download_cmd(r.get()),
+                  borderwidth=5, padx=20, pady=10, bg="#27F316")
+download.grid(row=7, column=0, columnspan=3, pady=20)
 
 root.mainloop()
