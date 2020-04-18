@@ -2,6 +2,7 @@ from tkinter import *
 from PIL import ImageTk, Image
 import pytube
 from tkinter import filedialog
+import os
 
 end_dialogue_box = None
 final_value = None
@@ -40,6 +41,8 @@ def video_quality(sample_video):
     format_window = Tk()
     format_window.title("Select The File Format To Download.")
     format_window.iconbitmap("img\\icon.ico")
+    format_window.resizable(False, False)
+
     format_frame = LabelFrame(format_window, bd=2, padx=5, pady=5, bg="#C7C7C2", relief="ridge")
     format_frame.pack(padx=5, pady=5)
 
@@ -129,6 +132,7 @@ def message(context, title_name="Error", icon="img\\error.ico"):
     message_box = Tk()
     message_box.title(title_name)
     message_box.iconbitmap(icon)
+    message_box.resizable(False, False)
 
     error_frame = LabelFrame(message_box, bd=1, relief=SOLID)
     error_frame.pack(padx=5, pady=5)
@@ -162,30 +166,53 @@ def download_cmd(download_type):
                 download_playlist(link.get(), path.get())
         except:
             message("Unexpected Error\n"
-                    "check your download link. and Download path")
+                    "Check your download link and Download path\n"
+                    "and try again.")
 
-        link.delete(0, len(link.get()))
-        path.delete(0, len(path.get()))
+        else:
+            link.delete(0, len(link.get()))
+            path.delete(0, len(path.get()))
 
 
 def browser_btn():
     """
     This is the function to browser button
-    :return:
+    :return: None
     """
     browser_box = Tk()
     browser_box.withdraw()
     browser_box.filename = filedialog.askdirectory(initialdir="C:\\", title="Select Download Directory")
-    path.delete(0, len(path.get()))
+    path.delete(0, END)
     path.insert(0, str(browser_box.filename))
 
     browser_box.destroy()
+
+
+def placeholder(place_text, entry_param):
+    """
+    This is a fuction created to store a place holder inside an entry
+    :param place_text: The value of place holder
+    :param entry_param: Entry
+    :return: None
+    """
+    entry_param.insert(0, place_text)
+    entry_param.configure(state=DISABLED)
+
+    def on_click(event):
+        entry_param.configure(state=NORMAL)
+        entry_param.delete(0, END)
+
+        # This is to let this process happen only once
+        entry_param.unbind('<Button-1>', on_click_id)
+
+    on_click_id = entry_param.bind('<Button-1>', on_click)
 
 
 # The root code starts here
 root = Tk()
 root.title("YouTube Video Downloader")
 root.iconbitmap("img\\icon.ico")
+root.resizable(False, False)
 
 # These are some color variables
 back_color = "#000000"
@@ -199,6 +226,9 @@ main_frame.pack(padx=5, pady=5, anchor='center')
 logo_frame = LabelFrame(main_frame, bd=2, relief="ridge", bg=logo_color)
 logo_frame.grid(row=0, column=0, columnspan=3, pady=10)
 
+browser_frame = LabelFrame(main_frame, bg=back_color, bd=0, width=40)
+browser_frame.grid(row=4, column=1, padx=0, pady=5, sticky=W)
+
 # This is the code to add the LoneWolf Logo
 title_icon = ImageTk.PhotoImage(Image.open("img\\title_logo.png"))
 title_label = Label(logo_frame, image=title_icon, bg=logo_color)
@@ -211,35 +241,47 @@ label_description.config(font=("Courier", 27))
 label_description.grid(row=1, column=0, pady=20, columnspan=2)
 
 # This is the code to add the URL entry and label
-link = Entry(main_frame, width=50)
-link_label = Label(main_frame, text="Enter The URL:", padx=50, anchor=E, bg=back_color, fg=f_color)
-link_label.config(font=("TimesNewRoman", 12))
+link = Entry(main_frame, width=50, bg="#CEE5F3", font=("Times", 12, "italic"))
+link_label = Label(main_frame, text="Enter The URL For The Youtube Video\t:",
+                   padx=50, anchor=E, bg=back_color, fg=f_color)
+link_label.config(font=("Times", 12, 'bold'))
 link_label.grid(row=3, column=0, pady=3, sticky=W + E)
 link.grid(row=3, column=1, sticky=W, pady=3)
 
+placeholder("Video URL", link)
+
+
 # This is the code to add Browser path entry and label
-path = Entry(main_frame, width=50)
-path_label = Label(main_frame, text="Enter The Path You Want To Save The Video:",
+path = Entry(browser_frame, bg="#CEE5F3", width=43, font=("Times", 12, "italic"))
+path_label = Label(main_frame, text="Enter The Path You Want To Save The Video\t:",
                    padx=50, anchor=E, bg=back_color, fg=f_color)
-path_label.config(font=("TimesNewRoman", 12))
+path_label.config(font=("Times", 12, 'bold'))
 path_label.grid(row=4, column=0, sticky=W + E, pady=3)
-path.grid(row=4, column=1, sticky=W, pady=3)
+path.grid(row=0, column=0, sticky=W)
+
+placeholder(os.environ['USERPROFILE'] + "\\Downloads", path)
 
 # This is the code to browser button
-path_browser = Button(main_frame, text='Browse', borderwidth=3, font=("TimesNewRoman", 12), command=browser_btn)
-path_browser.grid(row=5, column=1, sticky=W)
+path_browser = Button(browser_frame, text='Browse', borderwidth=3, font=("Times", 10, "bold"),
+                      command=browser_btn, bg="#CEE5F3", pady=0)
+path_browser.grid(row=0, column=1, sticky=W)
 
 # This is the code to choose from video download and playlist download
 r = IntVar(main_frame)
-r.set(0)
-Radiobutton(main_frame, text="One Video Download", variable=r, value=1, bd=4, relief=SUNKEN,
-            fg="#000000", bg="#63635F", font=("TimesNewRoman", 12), anchor=E).grid(row=6, column=0, pady=5, sticky=E)
-Radiobutton(main_frame, text="Playlist Download", variable=r, value=2, bd=4, relief=SUNKEN,
-            fg="#000000", bg="#63635F", font=("TimesNewRoman", 12), anchor=W).grid(row=6, column=1, pady=5, sticky=W)
+r.set(1)
+Radiobutton(main_frame, text="One Video Download", variable=r, value=1, bd=4, relief=SUNKEN, fg="#000000", bg="#63635F",
+            font=("Times", 11), anchor=E).grid(row=6, column=0, pady=5, sticky=E)
+Radiobutton(main_frame, text="Playlist Download", variable=r, value=2, bd=4, relief=SUNKEN, fg="#000000", bg="#63635F",
+            font=("Times", 11), anchor=W).grid(row=6, column=1, pady=5, sticky=W, columnspan=2)
 
 # This is the code to download button
-download = Button(main_frame, text='DOWNLOAD', font=("TimesNewRoman", 18), command=lambda: download_cmd(r.get()),
+download = Button(main_frame, text='DOWNLOAD', font=("Times", 18), command=lambda: download_cmd(r.get()),
                   borderwidth=5, padx=20, pady=10, bg="#27F316")
-download.grid(row=7, column=0, columnspan=3, pady=20)
+download.grid(row=7, column=0, columnspan=2, pady=20)
+
+# This is the footer containing copyrights and released date
+footer = Label(main_frame, text="CopyRight \u00A9 LoneWolf Dev. Released : 2020-04-18", font=("Helvetica", 8, "italic"),
+               bg=back_color, fg=f_color, anchor=E)
+footer.grid(row=8, column=0, columnspan=3, pady=1, sticky=W+E)
 
 root.mainloop()
