@@ -124,7 +124,7 @@ def message(context, title_name="Error", icon="img\\error.ico"):
     error_frame.pack(padx=5, pady=5)
 
     Label(error_frame, text=context, anchor=W, justify=LEFT, padx=20).grid(row=0, column=0, padx=10, pady=10)
-    cmd_btn = Button(error_frame, text="OK", command=message_box.destroy, width=10)
+    cmd_btn = Button(error_frame, text="OK", command=message_box.destroy(), width=10)
     cmd_btn.grid(row=1, column=0, padx=10, pady=10, sticky=E)
 
 
