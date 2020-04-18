@@ -4,7 +4,7 @@ import pytube
 from tkinter import filedialog
 import os
 
-end_dialogue_box = None
+# Global Scope variables
 final_value = None
 
 
