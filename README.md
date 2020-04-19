@@ -15,3 +15,8 @@ Download and enjoy you can find the application **exe** in build folder it is co
 the application inside the folder as **LoneWolf_Youtube_Downloder.exe**
 
 You can get the source code in **GUI.py** python file in the home directory in git reposatory
+
+## How to install
+
+  Download the setup file from the repository and install it, If you don't have python installed on your computer install it as well from 
+  requiered tools folder in the setup folder
